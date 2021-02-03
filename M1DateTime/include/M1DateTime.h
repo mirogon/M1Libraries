@@ -28,16 +28,18 @@ namespace m1
 			day = 0;
 			hour = 0;
 			minutes = 0;
+			seconds = 0;
 		}
-		DateTime(uint16_t pYear, uint8_t pMonth, uint8_t pDay, uint8_t pHour)
+		DateTime(uint16_t pYear, uint8_t pMonth, uint8_t pDay, uint8_t pHour, uint8_t pSeconds)
 		{
 			SetYear(pYear);
 			SetMonth(pMonth);
 			SetDay(pDay);
 			SetHour(pHour);
+			SetSeconds(pSeconds);
 		}
 
-		void Update()
+		void SetToNow()
 		{
 			time_t time = std::time(nullptr);
 			tm tmtime = *std::localtime(&time);
@@ -47,6 +49,7 @@ namespace m1
 			day = tmtime.tm_mday;
 			hour = tmtime.tm_hour;
 			minutes = tmtime.tm_min;
+			seconds = tmtime.tm_sec;
 		}
 
 		void SetYear(uint16_t pYear)
@@ -76,6 +79,14 @@ namespace m1
 		{
 			hour = pHour;
 		}
+		void SetMinutes(uint8_t pMinutes)
+		{
+			minutes = pMinutes;
+		}
+		void SetSeconds(uint8_t pSeconds)
+		{
+			seconds = pSeconds;
+		}
 
 		int GetYear()
 		{
@@ -97,18 +108,28 @@ namespace m1
 		{
 			return minutes;
 		}
-
+		int GetSeconds()
+		{
+			return seconds;
+		}
 		std::string GetTime()
 		{
-			std::string amOrPm = "am";
+			static std::string amOrPm;
+			amOrPm = "am";
 			int hour_ = hour;
 			if (hour > 12)
 			{
 				amOrPm = "pm";
 				hour_ -= 12;
 			}
-
-			return std::to_string(hour_) + ":" + std::to_string(minutes) + amOrPm;
+			static std::string sSeconds;
+			sSeconds = "";
+			if (seconds < 10)
+			{
+				sSeconds = "0";
+			}
+			sSeconds.append(std::to_string(seconds));
+			return std::to_string(hour_) + ":" + std::to_string(minutes) + ":" + sSeconds +  amOrPm;
 		}
 
 		void PrintDate()
@@ -123,5 +144,6 @@ namespace m1
 		uint8_t	day; // 1-31
 		uint8_t	hour; // 0-23
 		uint8_t minutes; // 0-59
+		uint8_t seconds; //0-59
 	};
 }
