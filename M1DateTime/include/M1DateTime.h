@@ -1,26 +1,190 @@
+#include <iostream>
+#include <ctime>
+#include <algorithm>
+#include <limits>
+
 namespace m1
 {
 	enum class Month
 	{
 		NONE = 0,
-		January = 1,
-		February = 2,
-		March = 3,
-		April = 4,
-		May = 5,
-		June = 6,
-		July = 7,
-		August = 8,
-		September = 9,
-		October = 10,
-		November = 11,
-		December = 12
-
+		JANUARY = 1,
+		FEBRUARY = 2,
+		MARCH = 3,
+		APRIL = 4,
+		MAY = 5,
+		JUNE = 6,
+		JULY = 7,
+		AUGUST = 8,
+		SEPTEMBER = 9,
+		OCTOBER = 10,
+		NOVEMBER = 11,
+		DECEMBER = 12
+	};
+	
+	struct Duration
+	{
+		Duration()
+		{
+			years = 0;
+			months = 0;
+			days = 0;
+			hours = 0;
+			minutes = 0;
+			seconds = 0;
+		}
+		uint16_t years;
+		uint8_t	months; 
+		uint8_t	days; 
+		uint8_t	hours; 
+		uint8_t minutes; 
+		uint8_t seconds; 
 	};
 	class DateTime
 	{
 	public:
 
+		uint8_t NumOfDays(Month m)
+		{
+			bool isLeapYear = false;
+			if (yearSince1900 + 1900 % 4 == 0)
+			{
+				isLeapYear = true;
+			}
+
+			switch (m)
+			{
+				case Month::NONE: return 0; break;
+				case Month::JANUARY: return 31; break;
+				case Month::FEBRUARY: if (isLeapYear) { return 29;} else {return 28; } break;
+				case Month::MARCH: return 31; break;
+				case Month::APRIL: return 30; break;
+				case Month::MAY: return 31; break;
+				case Month::JUNE: return 30; break;
+				case Month::JULY: return 31; break;
+				case Month::AUGUST: return 31; break;
+				case Month::SEPTEMBER: return 30; break;
+				case Month::OCTOBER: return 31; break;
+				case Month::NOVEMBER: return 30; break;
+				case Month::DECEMBER: return 31; break;
+			}
+			return 0;
+		}
+
+		bool operator<(const DateTime& dt)
+		{
+			if (dt.yearSince1900 > yearSince1900)
+			{
+				return true;
+			}
+			else if (dt.yearSince1900 < yearSince1900)
+			{
+				return false;
+			}
+
+			if (dt.month > month)
+			{
+				return true;
+			}
+			else if (dt.month < month)
+			{
+				return false;
+			}
+
+			if (dt.day > day)
+			{
+				return true;
+			}
+			else if(dt.day < day)
+			{
+				return false;
+			}
+
+			if (dt.hour > hour)
+			{
+				return true;
+			}
+			else if (dt.hour < hour)
+			{
+				return false;
+			}
+			if (dt.minutes > minutes)
+			{
+				return true;
+			}
+			else if (dt.minutes < minutes)
+			{
+				return false;
+			}
+
+			if (dt.seconds > seconds)
+			{
+				return true;
+			}
+			else if (dt.seconds < seconds)
+			{
+				return false;
+			}
+
+			return false;
+		}
+
+		bool operator>(const DateTime& dt)
+		{
+			if (operator<(dt))
+			{
+				return false;
+			}
+			return true;
+		}
+
+		DateTime operator+(const Duration& d)
+		{
+			DateTime r = *this;
+			
+			//Handle seconds
+			long sumSec = long(r.seconds + d.seconds);
+			long addMin = sumSec / 60;
+			sumSec -= sumSec % 60;
+			r.seconds = sumSec;
+
+			//Handle minutes
+			long sumMin = r.minutes + addMin + d.minutes;
+			long addHours = sumMin / 60;
+			sumMin -= sumMin % 60;
+			r.minutes = sumMin;
+
+			//Handle hours
+			long sumHours = r.hour + addHours + d.hours;
+			long addDays = sumHours / 24;
+			sumHours = sumHours % 24;
+			r.hour = sumHours;
+
+			//Handle days
+			long sumDays = r.day + addDays + d.days;
+			//long addMonths = sumDays / NumOfDays(Month(r.month));
+
+
+			/*r.yearSince1900 = std::clamp<int>(int(r.yearSince1900 + d.years), std::numeric_limits<decltype(r.yearSince1900)>::min(), std::numeric_limits<decltype(r.yearSince1900)>::max());
+			r.month = std::clamp<int>(int(r.month + d.months), std::numeric_limits<decltype(r.month)>::min(), std::numeric_limits<decltype(r.month)>::max());
+			r.day = std::clamp<int>(int(r.day + d.days), std::numeric_limits<decltype(r.day)>::min(), std::numeric_limits<decltype(r.day)>::max());
+			r.hour = std::clamp<int>(int(r.hour + d.hours), std::numeric_limits<decltype(r.hour)>::min(), std::numeric_limits<decltype(r.hour)>::max());
+			r.minutes = std::clamp<int>(int(r.minutes + d.minutes), std::numeric_limits<decltype(r.minutes)>::min(), std::numeric_limits<decltype(r.minutes)>::max());
+			r.seconds = std::clamp<int>(int(r.seconds + d.seconds), std::numeric_limits<decltype(r.seconds)>::min(), std::numeric_limits<decltype(r.seconds)>::max());
+			*/
+			return r;
+		}
+		DateTime operator-(const Duration& d)
+		{
+			DateTime r = *this;
+			r.yearSince1900 = std::clamp<int>(int(r.yearSince1900 - d.years), std::numeric_limits<decltype(r.yearSince1900)>::min(), std::numeric_limits<decltype(r.yearSince1900)>::max());
+			r.month = std::clamp<int>(int(r.month - d.months), std::numeric_limits<decltype(r.month)>::min(), std::numeric_limits<decltype(r.month)>::max());
+			r.day = std::clamp<int>(int(r.day - d.days), std::numeric_limits<decltype(r.day)>::min(), std::numeric_limits<decltype(r.day)>::max());
+			r.hour = std::clamp<int>(int(r.hour - d.hours), std::numeric_limits<decltype(r.hour)>::min(), std::numeric_limits<decltype(r.hour)>::max());
+			r.minutes = std::clamp<int>(int(r.minutes - d.minutes), std::numeric_limits<decltype(r.minutes)>::min(), std::numeric_limits<decltype(r.minutes)>::max());
+			r.seconds = std::clamp<int>(int(r.seconds - d.seconds), std::numeric_limits<decltype(r.seconds)>::min(), std::numeric_limits<decltype(r.seconds)>::max());
+			return r;
+		}
 		DateTime()
 		{
 			yearSince1900 = 0;
